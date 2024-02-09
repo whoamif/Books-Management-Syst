@@ -1,41 +1,32 @@
-from fastapi import FastAPI, HTTPException,Depends
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
 from uuid import UUID
 import models 
-from database import engine,SessionLocal
+from database import SessionLocal,engine
 from sqlalchemy.orm import Session
- 
 
 app = FastAPI()
-
 models.Base.metadata.create_all(bind=engine)
 
 def get_db():
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         yield db
-    finally :
+    finally:
         db.close()
-
-
-
-
 class Book(BaseModel):
     title: str = Field(min_length=1)
     author: str = Field(min_length=1, max_length=100)
     description: str = Field(min_length=1, max_length=100)
-    rating: int = Field(gt=-1, lt=101)
+    ratings: int = Field(gt=-1, lt=101)
 
-
-BOOKS = []
-
+BOOKS=[] 
 
 @app.get("/")
-def read_api(db : Session = Depends(get_db)):
+def read_books(db: Session = Depends(get_db)):
     return db.query(models.Books).all()
 
-
-@app.post("/")
+@app.post("/create")
 def create_book(book: Book,db : Session = Depends(get_db)):
     book_model = models.Books()
     book_model.title = book.title
@@ -47,32 +38,31 @@ def create_book(book: Book,db : Session = Depends(get_db)):
 
     return book
 
-
+# Update a book by ID
 @app.put("/{book_id}")
-def update_book(book_id: UUID, book: Book):
-    counter = 0
+def update_book(book_id: UUID, book: Book, db: Session = Depends(get_db)):
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if db_book:
+        for attr, value in book.dict().items():
+            setattr(db_book, attr, value)
+        db.commit()
+        return db_book
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with id {book_id} not found"
+        )
 
-    for x in BOOKS:
-        counter += 1
-        if x.id == book_id:
-            BOOKS[counter - 1] = book
-            return BOOKS[counter - 1]
-    raise HTTPException(
-        status_code=404,
-        detail=f"ID {book_id} : Does not exist"
-    )
-
-
+# Delete a book by ID
 @app.delete("/{book_id}")
-def delete_book(book_id: UUID):
-    counter = 0
-
-    for x in BOOKS:
-        counter += 1
-        if x.id == book_id:
-            del BOOKS[counter - 1]
-            return f"ID: {book_id} deleted"
-    raise HTTPException(
-        status_code=404,
-        detail=f"ID {book_id} : Does not exist"
-    )
+def delete_book(book_id: UUID, db: Session = Depends(get_db)):
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if db_book:
+        db.delete(db_book)
+        db.commit()
+        return {"message": f"Book with id {book_id} deleted"}
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with id {book_id} not found"
+        )
