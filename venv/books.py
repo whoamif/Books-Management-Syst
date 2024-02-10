@@ -6,6 +6,8 @@ from database import SessionLocal,engine
 from sqlalchemy.orm import Session
 
 app = FastAPI()
+
+#it is what it is , okay i still keep my streak in github 
 models.Base.metadata.create_all(bind=engine)
 
 def get_db():
