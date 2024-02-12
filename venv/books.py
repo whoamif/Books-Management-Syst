@@ -49,7 +49,7 @@ def update_book(book_id: UUID, book: Book, db: Session = Depends(get_db)):
         )
 
 @app.delete("/{book_id}")
-def delete_book(book_id: UUID, db: Session = Depends(get_db)):
+def delete_book(book_id: int , db: Session = Depends(get_db)):
     book_model = db.query(models.Book).filter(models.Book.id == book_id).first()
     if book_model is None:
         raise HTTPException(
