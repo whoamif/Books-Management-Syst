@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 #(Object-Relational Mapping) module. sessionmaker is a factory function
 # that creates new Session objects, which are used to interact with the database.
 from sqlalchemy.ext.declarative import declarative_base
-
+#declarative functions 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./books.db"
 #url to the data base 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})

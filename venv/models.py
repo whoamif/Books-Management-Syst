@@ -8,3 +8,4 @@ class Books(Base):
     author = Column(String)
     description = Column(String)
     ratings = Column(Integer)
+#here u cans define your data base model 
