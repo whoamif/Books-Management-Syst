@@ -35,7 +35,7 @@ def create_book(book: Book, db: Session = Depends(get_db)):
     return book_model
 
 @app.put("/{book_id}")
-def update_book(book_id: UUID, book: Book, db: Session = Depends(get_db)):
+def update_book(book_id: int, book: Book, db: Session = Depends(get_db)):
     db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
     if db_book:
         for attr, value in book.dict().items():
